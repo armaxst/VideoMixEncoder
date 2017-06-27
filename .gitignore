@@ -1,0 +1,5 @@
+VideoMixerAndroid/.idea/
+*.iml
+VideoMixerAndroid/Grafika/build/
+VideoMixerAndroid/AudioVideoRecordingSampleOriginal/build/
+VideoMixerAndroid/AudioVideoRecordingSample/build/
