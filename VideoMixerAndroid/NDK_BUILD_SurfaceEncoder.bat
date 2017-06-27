@@ -1,0 +1,1 @@
+ndk-build -j 4 NDK_PROJECT_PATH="SurfaceEncoder"

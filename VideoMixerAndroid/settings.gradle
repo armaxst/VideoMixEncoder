@@ -1,0 +1,4 @@
+include ':VideoMixerApp', ':MediaCodecTest', ':SurfaceEncoder', 'CameraToOpenGL'
+include ':Grafika'
+include ':AudioVideoRecordingSample'
+include ':AudioVideoRecordingSampleOriginal'
