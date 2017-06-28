@@ -5,8 +5,8 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
+import com.maxst.ar.MaxstARAPI;
 import com.maxst.videoPlayer.VideoPlayer;
-import com.maxst.videomixer.camera.CameraJNI;
 import com.maxst.videomixer.gl.RenderTexture;
 
 import java.io.File;
@@ -79,7 +79,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 			mRecordingStatus = RECORDING_OFF;
 		}
 
-		CameraJNI.initRendering();
+		MaxstARAPI.initRendering();
 	}
 
 	@Override
@@ -88,7 +88,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
 		VideoPlayer.getInstance().updateRendering(width, height);
 
-		CameraJNI.updateRendering(width, height);
+		MaxstARAPI.updateRendering(width, height);
 		RenderTexture.initTargetTexture();
 		RenderTexture.initFBO(width, height);
 	}
@@ -141,7 +141,7 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 		// This will be ignored if we're not actually recording.
 
 		RenderTexture.startRTT();
-		CameraJNI.renderFrame();
+		MaxstARAPI.renderBackground();
 		VideoPlayer.getInstance().update();
 		RenderTexture.endRTT();
 

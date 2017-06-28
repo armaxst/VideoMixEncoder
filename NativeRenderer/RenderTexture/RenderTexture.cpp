@@ -66,7 +66,6 @@ namespace maxstAR
 		
 		texCoords[6] = 1.0f;
 		texCoords[7] = 0.0f;
-
 	}
 
 	RenderTexture::~RenderTexture()
@@ -78,7 +77,7 @@ namespace maxstAR
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);		
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);		
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -93,26 +92,38 @@ namespace maxstAR
 		viewWidth = width;
 		viewHeight = height;
 			
-	    glActiveTexture(GL_TEXTURE0);
-	    glBindTexture(GL_TEXTURE_2D, textureID);
-	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	    
-	    glGenFramebuffers(1, &fbo);
-	    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
-	    glClear(GL_COLOR_BUFFER_BIT);
-	    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		TraceR("%s %d", __FILE__, __LINE__);
+    glActiveTexture(GL_TEXTURE0);
+		TraceR("%s %d", __FILE__, __LINE__);    
+    glBindTexture(GL_TEXTURE_2D, textureID);
+		TraceR("%s %d", __FILE__, __LINE__);    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, viewWidth, viewHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		TraceR("%s %d", __FILE__, __LINE__);    
+    
+    glGenFramebuffers(1, &fbo);
+    TraceR("%s %d", __FILE__, __LINE__);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    TraceR("%s %d", __FILE__, __LINE__);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+    TraceR("%s %d", __FILE__, __LINE__);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    TraceR("%s %d", __FILE__, __LINE__);
 		glBindTexture(GL_TEXTURE_2D, 0);	
+		TraceR("%s %d", __FILE__, __LINE__);
 
 		createProgram();
+		TraceR("%s %d", __FILE__, __LINE__);
 
 		initVertex();
+		TraceR("%s %d", __FILE__, __LINE__);
 		
 		GLUtil::GLLoadIdentity(&projectionMatrix);
 		GLUtil::GLOrtho(&projectionMatrix, -viewWidth / 2 , viewWidth / 2, -viewHeight / 2, viewHeight / 2, 20.0, 22.0);
 		GLUtil::GLLoadIdentity(&modelviewMatrix);
 		modelviewMatrix.m[3][2] = -21.0f;
 		GLUtil::GLMatrixMultiply(&mvpMatrix, &modelviewMatrix, &projectionMatrix);
+		
+		return fbo;
 	}
 
 	void RenderTexture::createProgram()

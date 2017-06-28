@@ -6,7 +6,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
 
-import com.maxst.videomixer.camera.CameraJNI;
+import com.maxst.ar.MaxstARAPI;
 import com.maxst.videoPlayer.VideoPlayer;
 
 public class SampleGLRenderer implements Renderer {
@@ -15,15 +15,10 @@ public class SampleGLRenderer implements Renderer {
 	private int viewHeight;
 
 	@Override
-	public void onDrawFrame(GL10 gl) {
-		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
-
-		RenderTexture.startRTT();
-		CameraJNI.renderFrame();
-		VideoPlayer.getInstance().update();
-		RenderTexture.endRTT();
-
-		RenderTexture.drawTexture();
+	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		MaxstARAPI.initRendering();
+		RenderTexture.initTargetTexture();
 	}
 
 	@Override
@@ -31,22 +26,23 @@ public class SampleGLRenderer implements Renderer {
 		viewWidth = width;
 		viewHeight = height;
 
-		GLES20.glViewport(0, 0, viewWidth, viewHeight);
-		CameraJNI.updateRendering(viewWidth, viewHeight);
+		MaxstARAPI.updateRendering(viewWidth, viewHeight);
 		VideoPlayer.getInstance().updateRendering(viewWidth, viewHeight);
 
-		RenderTexture.initTargetTexture();
 		RenderTexture.initFBO(width, height);
 	}
 
 	@Override
-	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		CameraJNI.initRendering();
-	}
+	public void onDrawFrame(GL10 gl) {
+		GLES20.glViewport(0, 0, viewWidth, viewHeight);
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-	public void surfaceDestroyed() {
-		VideoPlayer.getInstance().stop();
+		RenderTexture.startRTT();
+		MaxstARAPI.renderBackground();
+		VideoPlayer.getInstance().update();
+		RenderTexture.endRTT();
+
+		RenderTexture.drawTexture();
 	}
 
 	int mFrameCount = 0;

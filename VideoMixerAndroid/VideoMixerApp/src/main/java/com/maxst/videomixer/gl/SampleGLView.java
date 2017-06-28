@@ -12,14 +12,6 @@ public class SampleGLView extends GLSurfaceView {
 		super(context);
 
 		setEGLContextClientVersion(2);
-		renderer = new SampleGLRenderer();
-		setRenderer(renderer);
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		super.surfaceDestroyed(holder);
-
-		renderer.surfaceDestroyed();
+		setRenderer(new SampleGLRenderer());
 	}
 }

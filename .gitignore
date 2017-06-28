@@ -3,3 +3,7 @@ VideoMixerAndroid/.idea/
 VideoMixerAndroid/Grafika/build/
 VideoMixerAndroid/AudioVideoRecordingSampleOriginal/build/
 VideoMixerAndroid/AudioVideoRecordingSample/build/
+VideoMixerAndroid/SurfaceEncoder/obj/
+VideoMixerAndroid/SurfaceEncoder/libs/
+VideoMixerAndroid/VideoMixerApp/libs/
+VideoMixerAndroid/VideoMixerApp/obj/

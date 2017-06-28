@@ -6,9 +6,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.maxst.videomixer.camera.CameraJNI;
-import com.maxst.videomixer.camera.CameraPreview;
-import com.maxst.videomixer.camera.SurfaceManager;
+import com.maxst.ar.MaxstARAPI;
 import com.maxst.videomixer.gl.SampleGLView;
 import com.maxst.videoPlayer.VideoPlayer;
 
@@ -19,7 +17,6 @@ public class MainActivity extends Activity {
 	private SampleGLView glView;
 	private int screenWidth;
 	private int screenHeight;
-	private CameraPreview cameraPreview;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +33,13 @@ public class MainActivity extends Activity {
 		screenHeight = displaymetrics.heightPixels;
 
 		boolean isPortrait = (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		CameraJNI.setScreenOrientationPortrait(isPortrait);
-		cameraPreview = SurfaceManager.getInstance(this).getCameraPreview();
+		MaxstARAPI.setScreenOrientation(getResources().getConfiguration().orientation);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		cameraPreview.startCamera(screenWidth, screenHeight);
+		MaxstARAPI.startCamera(0, screenWidth, screenHeight);
 		glView.onResume();
 	}
 
@@ -51,15 +47,20 @@ public class MainActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		glView.onPause();
-		cameraPreview.stopCamera();
+		MaxstARAPI.stopCamera();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
-		SurfaceManager.release();
 		VideoPlayer.getInstance().destroy();
+		glView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				MaxstARAPI.deinitRendering();
+			}
+		});
 	}
 
 	static {

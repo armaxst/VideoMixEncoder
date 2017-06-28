@@ -17,7 +17,6 @@
 package com.maxst.surfaceEncoder;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,10 +26,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.maxst.ar.MaxstARAPI;
 import com.maxst.videoPlayer.VideoPlayer;
-import com.maxst.videomixer.camera.CameraJNI;
-import com.maxst.videomixer.camera.CameraPreview;
-import com.maxst.videomixer.camera.SurfaceManager;
 
 import java.io.File;
 
@@ -40,7 +37,6 @@ public class CameraCaptureActivity extends Activity {
     private GLSurfaceView mGLView;
     private CameraSurfaceRenderer mRenderer;
 
-    private CameraPreview cameraPreview;
     private int screenWidth;
     private int screenHeight;
 
@@ -84,9 +80,7 @@ public class CameraCaptureActivity extends Activity {
         screenWidth = displaymetrics.widthPixels;
         screenHeight = displaymetrics.heightPixels;
 
-        boolean isPortrait = (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        CameraJNI.setScreenOrientationPortrait(isPortrait);
-        cameraPreview = SurfaceManager.getInstance(this).getCameraPreview();
+        MaxstARAPI.setScreenOrientation(getResources().getConfiguration().orientation);
     }
 
     @Override
@@ -94,8 +88,7 @@ public class CameraCaptureActivity extends Activity {
         Log.d(TAG, "onResume -- acquiring camera");
         super.onResume();
         updateControls();
-        cameraPreview.startCamera(screenWidth, screenHeight);
-        //openCamera(1280, 720);      // updates mCameraPreviewWidth/Height
+        MaxstARAPI.startCamera(0, 1280, 720);
 
         mGLView.onResume();
         Log.d(TAG, "onResume complete: " + this);
@@ -105,13 +98,14 @@ public class CameraCaptureActivity extends Activity {
     protected void onPause() {
         Log.d(TAG, "onPause -- releasing camera");
         super.onPause();
-        cameraPreview.stopCamera();
+        MaxstARAPI.stopCamera();
         mGLView.onPause();
         mGLView.queueEvent(new Runnable() {
             @Override
             public void run() {
                 // notify the renderer that we want to change the encoder's state
                 mRenderer.surfaceDestroyed();
+                MaxstARAPI.deinitRendering();
             }
         });
         Log.d(TAG, "onPause complete");
@@ -121,7 +115,7 @@ public class CameraCaptureActivity extends Activity {
     protected void onDestroy() {
         Log.d(TAG, "onDestroy");
         super.onDestroy();
-        SurfaceManager.release();
+        MaxstARAPI.deinit();
         VideoPlayer.getInstance().destroy();
     }
 
