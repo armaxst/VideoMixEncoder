@@ -168,7 +168,7 @@ public class VideoQuad extends BaseModel {
         this.videoPlayer = videoPlayer;
     }
 
-    public VideoPlayer getVideoPlayer() {
-        return this.videoPlayer;
+    public void destroyVideoPlayer() {
+        videoPlayer.destroy();;
     }
 }

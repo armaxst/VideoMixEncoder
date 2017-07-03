@@ -1,12 +1,24 @@
 package com.maxst.videomixer;
 
+import android.app.Activity;
+
 import com.maxst.ar.BackgroundRenderer;
 import com.maxst.ar.BackgroundTexture;
+import com.maxst.videoplayer.VideoPlayer;
 
 public class SampleRenderer {
 
 	private BackgroundQuad backgroundQuad;
 	private BackgroundRenderer backgroundRenderer;
+	private VideoQuad videoQuad;
+
+	public SampleRenderer(Activity activity) {
+		videoQuad = new VideoQuad();
+		videoQuad.setScale(2, 2, 1);
+		VideoPlayer videoPlayer = new VideoPlayer(activity);
+		videoQuad.setVideoPlayer(videoPlayer);
+		videoPlayer.openVideo("AsianAdult.mp4");
+	}
 
 	public void onSurfaceCreated() {
 		backgroundQuad = new BackgroundQuad();
@@ -24,9 +36,10 @@ public class SampleRenderer {
 		backgroundRenderer.end();
 
 		backgroundQuad.draw(backgroundTexture, backgroundRenderer.getBackgroundPlaneProjectionMatrix());
+		videoQuad.draw();
 	}
 
-	public void onOrientationChanged(int orientatioin) {
-		backgroundRenderer.setScreenOrientation(orientatioin);
+	public void onPause() {
+		videoQuad.destroyVideoPlayer();
 	}
 }

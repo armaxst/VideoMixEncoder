@@ -3,7 +3,6 @@ package com.maxst.videomixer;
 import android.app.Activity;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
-import android.opengl.Matrix;
 
 import com.maxst.videoplayer.VideoPlayer;
 
@@ -16,28 +15,18 @@ public class VideoMixerRenderer implements Renderer {
 	private int surfaceHeight;
 	private SampleRenderer sampleRenderer;
 
-	private VideoQuad videoQuad;
-	private VideoPlayer videoPlayer;
 	private Activity activity;
-	float [] identityMatrix = new float[16];
 
 	public VideoMixerRenderer(Activity activity) {
 		this.activity = activity;
-		Matrix.setIdentityM(identityMatrix, 0);
 	}
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		sampleRenderer = new SampleRenderer();
+		sampleRenderer = new SampleRenderer(activity);
 		sampleRenderer.onSurfaceCreated();
-
-		videoQuad = new VideoQuad();
-		videoQuad.setScale(2, 2, 1);
-		videoPlayer = new VideoPlayer(activity);
-		videoQuad.setVideoPlayer(videoPlayer);
-		videoPlayer.openVideo("AsianAdult.mp4");
 	}
 
 	@Override
@@ -46,10 +35,6 @@ public class VideoMixerRenderer implements Renderer {
 
 		surfaceWidth = width;
 		surfaceHeight = height;
-
-//		VideoPlayer.getInstance().updateRendering(surfaceWidth, surfaceHeight);
-//
-//		RenderTexture.initFBO(width, height);
 	}
 
 	@Override
@@ -58,12 +43,6 @@ public class VideoMixerRenderer implements Renderer {
 		GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight);
 
 		sampleRenderer.onDrawFrame();
-
-		videoQuad.setProjectionMatrix(identityMatrix);
-		videoQuad.draw();
-//		VideoPlayer.getInstance().update();
-
-//		RenderTexture.drawTexture();
 	}
 
 	int mFrameCount = 0;
@@ -86,6 +65,6 @@ public class VideoMixerRenderer implements Renderer {
 	}
 
 	public void onPause() {
-		videoPlayer.destroy();
+		sampleRenderer.onPause();
 	}
 }
