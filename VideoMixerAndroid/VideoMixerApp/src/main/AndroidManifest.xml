@@ -14,7 +14,7 @@
         android:theme="@style/AppTheme" >
 
         <activity
-            android:name=".MethodSelectActivity"
+            android:name=".PermissionCheckActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,15 +30,10 @@
         </activity>
 
         <activity
-            android:name="com.maxst.mediacodectest.CameraEncodingTestActivity"
+            android:name=".MethodSelectActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen" >
-        </activity>
-
-        <activity
-            android:name="com.maxst.mediacodectest.GLSurfaceEncodingActivity"
-            android:label="@string/title_activity_video_encoding" >
         </activity>
     </application>
 

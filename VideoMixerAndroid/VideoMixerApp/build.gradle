@@ -56,5 +56,9 @@ task copyLib(type: Copy) {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'gun0912.ted:tedpermission:1.0.3'
+    compile 'com.jakewharton:butterknife:7.0.1'
+
     compile files("$MAXSTAR_SDK_DIR/$JAR_DIR/MaxstAR.jar")
+    compile files("$MAXSTAR_SDK_DIR/$JAR_DIR/VideoPlayer.jar")
 }

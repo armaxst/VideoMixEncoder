@@ -1,69 +1,75 @@
 package com.maxst.videomixer;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.maxst.ar.MaxstARAPI;
-import com.maxst.videomixer.gl.SampleGLView;
-import com.maxst.videoPlayer.VideoPlayer;
+import com.maxst.ar.BackgroundRenderer;
+import com.maxst.ar.CameraDevice;
+import com.maxst.ar.TrackerManager;
 
 public class MainActivity extends Activity {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
-	private SampleGLView glView;
+	private GLSurfaceView glSurfaceView;
+	private TrackerManager trackerManager;
+	private CameraDevice cameraDevice;
+	private BackgroundRenderer backgroundRenderer;
+	private VideoMixerRenderer videoMixerRenderer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		VideoPlayer.getInstance(this, "AsianAdult.mp4");
-		glView = new SampleGLView(this);
+//		VideoPlayer.getInstance(this, "AsianAdult.mp4");
+		glSurfaceView = new GLSurfaceView(this);
+		glSurfaceView.setEGLContextClientVersion(2);
 
-		setContentView(glView);
+		videoMixerRenderer = new VideoMixerRenderer(this);
+		glSurfaceView.setRenderer(videoMixerRenderer);
+
+		setContentView(glSurfaceView);
+
+		trackerManager = TrackerManager.getInstance();
+		cameraDevice = CameraDevice.getInstance();
+		backgroundRenderer = BackgroundRenderer.getInstance();
 
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
 
-		MaxstARAPI.init(this, "FFZygliqyv5ZbGL31UJ1QBbe3J9SCTv3Iu+cynC3bh4=");
-		MaxstARAPI.setScreenOrientation(getResources().getConfiguration().orientation);
+		trackerManager.init(this, "FFZygliqyv5ZbGL31UJ1QBbe3J9SCTv3Iu+cynC3bh4=");
+		backgroundRenderer.setScreenOrientation(getResources().getConfiguration().orientation);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		MaxstARAPI.startCamera(0, 1280, 720);
-		glView.onResume();
+		cameraDevice.start(0, 1280, 720);
+		glSurfaceView.onResume();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		glView.onPause();
-		glView.queueEvent(new Runnable() {
+		glSurfaceView.onPause();
+		glSurfaceView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
-				VideoPlayer.getInstance().stop();
+				backgroundRenderer.deinitRendering();
+				videoMixerRenderer.onPause();
 			}
 		});
-		MaxstARAPI.stopCamera();
+		cameraDevice.stop();
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 
-		glView.queueEvent(new Runnable() {
-			@Override
-			public void run() {
-				MaxstARAPI.deinitRendering();
-				MaxstARAPI.deinit();
-				VideoPlayer.getInstance().destroy();
-			}
-		});
+		trackerManager.deinit();
 	}
 
 	static {

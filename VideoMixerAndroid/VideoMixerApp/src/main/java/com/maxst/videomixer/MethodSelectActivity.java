@@ -3,38 +3,29 @@ package com.maxst.videomixer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-import com.maxst.viewMapper.DeclareView;
-import com.maxst.viewMapper.ViewMapper;
-
-/**
- * Created by Giseok on 2015-08-23.
- */
 public class MethodSelectActivity extends Activity {
 
-     @DeclareView(id = R.id.alpha_video_play_test, click = "clickListener")
-    private Button alphaVideoPlayTest;
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_method_select);
 
-        setContentView(R.layout.activity_method_select);
+		ButterKnife.bind(this);
+	}
 
-        ViewMapper.mapLayout(this, getWindow().getDecorView());
-    }
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 
-    public View.OnClickListener clickListener = new View.OnClickListener() {
+		ButterKnife.unbind(this);
+	}
 
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.alpha_video_play_test:
-                    startActivity(new Intent(MethodSelectActivity.this, MainActivity.class));
-                    break;
-            }
-        }
-    };
+	@OnClick(R.id.alpha_video_play_test)
+	public void onClick() {
+		startActivity(new Intent(MethodSelectActivity.this, MainActivity.class));
+	}
 }

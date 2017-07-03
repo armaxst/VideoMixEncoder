@@ -1,4 +1,4 @@
-package com.maxst.videomixer.gl;
+package com.maxst.videomixer;
 
 /**
  * Created by Giseok on 2015-08-20.
