@@ -41,20 +41,6 @@ android {
     }
 }
 
-gradle.projectsEvaluated {
-    preBuild.dependsOn(copySharedLib)
-}
-
-task copySharedLib(type: Copy) {
-    println 'Copy copySharedLib files'
-
-    copy {
-        from "$MAXSTAR_SDK_DIR/armeabi-v7a"
-        into 'libs/armeabi-v7a'
-        include '*.so'
-    }
-}
-
 dependencies {
 	compile fileTree(include: ['*.jar'], dir: 'libs')
 	compile 'com.android.support:appcompat-v7:25.1.0'

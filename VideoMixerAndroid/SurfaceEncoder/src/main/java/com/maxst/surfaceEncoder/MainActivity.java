@@ -1,4 +1,4 @@
-package com.maxst.videomixer;
+package com.maxst.surfaceEncoder;
 
 import android.app.Activity;
 import android.opengl.GLSurfaceView;

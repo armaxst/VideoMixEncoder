@@ -26,144 +26,145 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.maxst.ar.MaxstARAPI;
-import com.maxst.videoPlayer.VideoPlayer;
+import com.maxst.ar.BackgroundRenderer;
+import com.maxst.ar.CameraDevice;
+import com.maxst.ar.MaxstAR;
 
 import java.io.File;
 
 public class CameraCaptureActivity extends Activity {
-    private static final String TAG = CameraCaptureActivity.class.getSimpleName();
+	private static final String TAG = CameraCaptureActivity.class.getSimpleName();
 
-    private GLSurfaceView mGLView;
-    private CameraSurfaceRenderer mRenderer;
+	private GLSurfaceView mGLView;
+	private CameraSurfaceRenderer mRenderer;
+//	private VideoMixerRenderer videoMixerRenderer;
+	private CameraDevice cameraDevice;
+	private BackgroundRenderer backgroundRenderer;
 
-    private int screenWidth;
-    private int screenHeight;
+	// this is static so it survives activity restarts
+	private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
 
-    // this is static so it survives activity restarts
-    private static TextureMovieEncoder sVideoEncoder = new TextureMovieEncoder();
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_camera_capture);
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera_capture);
+		new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SurfaceEncoder").mkdir();
 
-        VideoPlayer.getInstance(this, Environment.getExternalStorageDirectory().getAbsolutePath() + "/SurfaceEncoder/" + "hobi_150909.mp4");
+		File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SurfaceEncoder", String.valueOf(System.currentTimeMillis()) + ".mp4");
+		TextView fileText = (TextView) findViewById(R.id.cameraOutputFile_text);
+		fileText.setText(outputFile.toString());
 
-        new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SurfaceEncoder").mkdir();
+		// Define a handler that receives camera-control messages from other threads.  All calls
+		// to Camera must be made on the same thread.  Note we create this before the renderer
+		// thread, so we know the fully-constructed object will be visible.
+		mRecordingEnabled = sVideoEncoder.isRecording();
 
-        File outputFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SurfaceEncoder", String.valueOf(System.currentTimeMillis()) + ".mp4");
-        TextView fileText = (TextView) findViewById(R.id.cameraOutputFile_text);
-        fileText.setText(outputFile.toString());
+		// Configure the GLSurfaceView.  This will start the Renderer thread, with an
+		// appropriate EGL context.
+		mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
+		mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
+		mRenderer = new CameraSurfaceRenderer(this, sVideoEncoder, outputFile);
+		mGLView.setRenderer(mRenderer);
+//		videoMixerRenderer = new VideoMixerRenderer(this);
+//		mGLView.setRenderer(videoMixerRenderer);
+		//mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
-        // Define a handler that receives camera-control messages from other threads.  All calls
-        // to Camera must be made on the same thread.  Note we create this before the renderer
-        // thread, so we know the fully-constructed object will be visible.
-        mRecordingEnabled = sVideoEncoder.isRecording();
+		MaxstAR.init(getApplicationContext(), "FFZygliqyv5ZbGL31UJ1QBbe3J9SCTv3Iu+cynC3bh4=");
+		cameraDevice = CameraDevice.getInstance();
+		backgroundRenderer = BackgroundRenderer.getInstance();
 
-        // Configure the GLSurfaceView.  This will start the Renderer thread, with an
-        // appropriate EGL context.
-        mGLView = (GLSurfaceView) findViewById(R.id.cameraPreview_surfaceView);
-        mGLView.setEGLContextClientVersion(2);     // select GLES 2.0
-        mRenderer = new CameraSurfaceRenderer(sVideoEncoder, outputFile);
-        mGLView.setRenderer(mRenderer);
-        mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		findViewById(R.id.toggleRecording_button).setOnClickListener(clickListener);
 
-        VideoPlayer.getInstance().setGLView(mGLView);
+		Log.d(TAG, "onCreate complete: " + this);
 
-        findViewById(R.id.toggleRecording_button).setOnClickListener(clickListener);
+		DisplayMetrics displaymetrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+		backgroundRenderer.setScreenOrientation(getResources().getConfiguration().orientation);
+	}
 
-        Log.d(TAG, "onCreate complete: " + this);
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume -- acquiring camera");
+		super.onResume();
+		updateControls();
+		cameraDevice.start(0, 1280, 720);
 
-        DisplayMetrics displaymetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        screenWidth = displaymetrics.widthPixels;
-        screenHeight = displaymetrics.heightPixels;
+		mGLView.onResume();
+		Log.d(TAG, "onResume complete: " + this);
+	}
 
-        MaxstARAPI.setScreenOrientation(getResources().getConfiguration().orientation);
-    }
+	@Override
+	protected void onPause() {
+		Log.d(TAG, "onPause -- releasing camera");
+		super.onPause();
+		cameraDevice.stop();
+		mGLView.queueEvent(new Runnable() {
+			@Override
+			public void run() {
+				// notify the renderer that we want to change the encoder's state
+				mRenderer.onPause();
+//				videoMixerRenderer.onPause();
+				backgroundRenderer.deinitRendering();
+			}
+		});
+		mGLView.onPause();
+		Log.d(TAG, "onPause complete");
+	}
 
-    @Override
-    protected void onResume() {
-        Log.d(TAG, "onResume -- acquiring camera");
-        super.onResume();
-        updateControls();
-        MaxstARAPI.startCamera(0, 1280, 720);
+	@Override
+	protected void onDestroy() {
+		Log.d(TAG, "onDestroy");
+		super.onDestroy();
+		MaxstAR.deinit();
+	}
 
-        mGLView.onResume();
-        Log.d(TAG, "onResume complete: " + this);
-    }
+	public View.OnClickListener clickListener = new View.OnClickListener() {
 
-    @Override
-    protected void onPause() {
-        Log.d(TAG, "onPause -- releasing camera");
-        super.onPause();
-        MaxstARAPI.stopCamera();
-        mGLView.onPause();
-        mGLView.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                // notify the renderer that we want to change the encoder's state
-                mRenderer.surfaceDestroyed();
-                MaxstARAPI.deinitRendering();
-            }
-        });
-        Log.d(TAG, "onPause complete");
-    }
+		@Override
+		public void onClick(View view) {
 
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestroy");
-        super.onDestroy();
-        MaxstARAPI.deinit();
-        VideoPlayer.getInstance().destroy();
-    }
+			mRecordingEnabled = !mRecordingEnabled;
 
-    public View.OnClickListener clickListener = new View.OnClickListener() {
+			mGLView.queueEvent(new Runnable() {
+				@Override
+				public void run() {
+					// notify the renderer that we want to change the encoder's state
+					//mRenderer.changeRecordingState(mRecordingEnabled);
+				}
+			});
+			updateControls();
+		}
+	};
 
-        @Override
-        public void onClick(View view) {
+	private boolean mRecordingEnabled = false;
 
-            mRecordingEnabled = !mRecordingEnabled;
+	/**
+	 * Updates the on-screen controls to reflect the current state of the app.
+	 */
+	private void updateControls() {
+		Button toggleRelease = (Button) findViewById(R.id.toggleRecording_button);
+		int id = mRecordingEnabled ?
+				R.string.toggleRecordingOff : R.string.toggleRecordingOn;
+		toggleRelease.setText(id);
+	}
 
-            mGLView.queueEvent(new Runnable() {
-                @Override public void run() {
-                    // notify the renderer that we want to change the encoder's state
-                    mRenderer.changeRecordingState(mRecordingEnabled);
-                }
-            });
-            updateControls();
-        }
-    };
+	static {
+		loadLibrary("NativeRenderer");
+	}
 
-    private boolean mRecordingEnabled = false;
+	public static boolean loadLibrary(String nLibName) {
+		try {
+			System.loadLibrary(nLibName);
+			Log.i(TAG, "Native library lib" + nLibName + ".so loaded");
+			return true;
+		} catch (UnsatisfiedLinkError ulee) {
+			Log.i(TAG, "The library lib" + nLibName + ".so could not be loaded");
+		} catch (SecurityException se) {
+			Log.i(TAG, "The library lib" + nLibName + ".so was not allowed to be loaded");
+		}
 
-    /**
-     * Updates the on-screen controls to reflect the current state of the app.
-     */
-    private void updateControls() {
-        Button toggleRelease = (Button) findViewById(R.id.toggleRecording_button);
-        int id = mRecordingEnabled ?
-                R.string.toggleRecordingOff : R.string.toggleRecordingOn;
-        toggleRelease.setText(id);
-    }
-
-    static {
-        loadLibrary("NativeRenderer");
-    }
-
-    public static boolean loadLibrary(String nLibName) {
-        try {
-            System.loadLibrary(nLibName);
-            Log.i(TAG, "Native library lib" + nLibName + ".so loaded");
-            return true;
-        } catch (UnsatisfiedLinkError ulee) {
-            Log.i(TAG, "The library lib" + nLibName + ".so could not be loaded");
-        } catch (SecurityException se) {
-            Log.i(TAG, "The library lib" + nLibName + ".so was not allowed to be loaded");
-        }
-
-        return false;
-    }
+		return false;
+	}
 }
 

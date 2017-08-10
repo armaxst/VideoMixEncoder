@@ -1,13 +1,14 @@
 package com.maxst.surfaceEncoder;
 
+import android.app.Activity;
 import android.opengl.EGL14;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
-import com.maxst.ar.MaxstARAPI;
-import com.maxst.videoPlayer.VideoPlayer;
+import com.maxst.ar.BackgroundRenderer;
 import com.maxst.videomixer.gl.RenderTexture;
+import com.maxst.videoplayer.VideoPlayer;
 
 import java.io.File;
 
@@ -33,7 +34,11 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 
 	private boolean mRecordingEnabled;
 	private int mRecordingStatus;
-
+	private SampleRenderer sampleRenderer;
+	private VideoQuad videoQuad;
+	private Activity activity;
+	private int surfaceWidth;
+	private int surfaceHeight;
 
 	/**
 	 * Constructs CameraSurfaceRenderer.
@@ -41,7 +46,8 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 	 * @param movieEncoder video encoder object
 	 * @param outputFile output file for encoded video; forwarded to movieEncoder
 	 */
-	public CameraSurfaceRenderer(TextureMovieEncoder movieEncoder, File outputFile) {
+	public CameraSurfaceRenderer(Activity activity, TextureMovieEncoder movieEncoder, File outputFile) {
+		this.activity = activity;
 		mVideoEncoder = movieEncoder;
 		mOutputFile = outputFile;
 
@@ -79,22 +85,34 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 			mRecordingStatus = RECORDING_OFF;
 		}
 
-		MaxstARAPI.initRendering();
+		sampleRenderer = new SampleRenderer();
+		sampleRenderer.onSurfaceCreated();
+
+		videoQuad = new VideoQuad();
+		videoQuad.setScale(2, 2, 1);
+		VideoPlayer videoPlayer = new VideoPlayer(activity);
+		videoQuad.setVideoPlayer(videoPlayer);
+		videoPlayer.openVideo("AsianAdult.mp4");
 	}
 
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
 		Log.d(TAG, "onSurfaceChanged " + width + "x" + height);
 
-		VideoPlayer.getInstance().updateRendering(width, height);
+		surfaceWidth = width;
+		surfaceHeight = height;
 
-		MaxstARAPI.updateRendering(width, height);
-		RenderTexture.initTargetTexture();
-		RenderTexture.initFBO(width, height);
+		sampleRenderer.onSurfaceChanged(width, height);
+
+		//RenderTexture.initTargetTexture();
+		//RenderTexture.initFBO(width, height);
 	}
 
 	@Override
 	public void onDrawFrame(GL10 unused) {
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+		GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight);
+
 		boolean showBox = false;
 
 		// If the recording state is changing, take care of it here.  Ideally we wouldn't
@@ -140,19 +158,19 @@ class CameraSurfaceRenderer implements GLSurfaceView.Renderer {
 		// Tell the video encoder thread that a new frame is available.
 		// This will be ignored if we're not actually recording.
 
-		RenderTexture.startRTT();
-		MaxstARAPI.renderBackground();
-		VideoPlayer.getInstance().update();
-		RenderTexture.endRTT();
+		sampleRenderer.onDrawFrame();
+		videoQuad.draw();
 
-		mVideoEncoder.frameAvailable(VideoPlayer.getInstance().getSurfaceTexture());
-
-		RenderTexture.drawTexture();
+//		RenderTexture.startRTT();
+//		RenderTexture.endRTT();
+//
+//		mVideoEncoder.frameAvailable(VideoPlayer.getInstance().getSurfaceTexture());
+//
+//		RenderTexture.drawTexture();
 	}
 
-	public void surfaceDestroyed() {
+	public void onPause() {
 		notifyPausing();
-		VideoPlayer.getInstance().stop();
 	}
 
 	/**

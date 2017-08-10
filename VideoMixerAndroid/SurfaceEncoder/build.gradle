@@ -2,9 +2,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.application'
 
-def MAXSTAR_SDK_DIR = '../../3rdparty/MaxstAR'
-def NATIVE_LIB_DIR = 'lib'
-def JAR_DIR = 'lib'
+def MAXSTAR_SDK_DIR = '../../3rdparty/MaxstAR/lib'
 
 android {
     compileSdkVersion 25
@@ -43,20 +41,12 @@ android {
 	}
 }
 
-task copyLib(type: Copy) {
-    println 'Copy library files'
-
-    copy {
-        from "$MAXSTAR_SDK_DIR/$NATIVE_LIB_DIR/armeabi-v7a"
-        into 'libs/armeabi-v7a'
-        include '*.so'
-    }
-}
-
-
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:25.1.0'
-    compile files("$MAXSTAR_SDK_DIR/$JAR_DIR/MaxstAR.jar")
+	compile 'gun0912.ted:tedpermission:1.0.3'
+	compile 'com.jakewharton:butterknife:7.0.1'
+	compile files("$MAXSTAR_SDK_DIR/VideoPlayer.jar")
+	compile files("$MAXSTAR_SDK_DIR/MaxstAR.jar")
 }
