@@ -10,14 +10,8 @@ public class SampleRenderer {
 
 	private BackgroundQuad backgroundQuad;
 	private BackgroundRenderer backgroundRenderer;
-	private VideoQuad videoQuad;
 
-	public SampleRenderer(Activity activity) {
-		videoQuad = new VideoQuad();
-		videoQuad.setScale(2, 2, 1);
-		VideoPlayer videoPlayer = new VideoPlayer(activity);
-		videoQuad.setVideoPlayer(videoPlayer);
-		videoPlayer.openVideo("AsianAdult.mp4");
+	public SampleRenderer() {
 	}
 
 	public void onSurfaceCreated() {
@@ -30,16 +24,15 @@ public class SampleRenderer {
 	}
 
 	public void onDrawFrame() {
-		BackgroundTexture backgroundTexture = backgroundRenderer.updateBackgroundTexture();
-		backgroundRenderer.begin();
-		backgroundRenderer.renderBackground();
+		BackgroundTexture backgroundTexture = backgroundRenderer.getBackgroundTexture();
+		if (backgroundTexture == null) {
+			return;
+		}
+
+		backgroundRenderer.begin(backgroundTexture);
+		backgroundRenderer.renderBackgroundToTexture();
 		backgroundRenderer.end();
 
 		backgroundQuad.draw(backgroundTexture, backgroundRenderer.getBackgroundPlaneProjectionMatrix());
-		videoQuad.draw();
-	}
-
-	public void onPause() {
-		videoQuad.destroyVideoPlayer();
 	}
 }

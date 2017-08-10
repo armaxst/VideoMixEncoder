@@ -8,14 +8,13 @@ import android.util.Log;
 
 import com.maxst.ar.BackgroundRenderer;
 import com.maxst.ar.CameraDevice;
-import com.maxst.ar.TrackerManager;
+import com.maxst.ar.MaxstAR;
 
 public class MainActivity extends Activity {
 
 	private static final String TAG = MainActivity.class.getSimpleName();
 
 	private GLSurfaceView glSurfaceView;
-	private TrackerManager trackerManager;
 	private CameraDevice cameraDevice;
 	private BackgroundRenderer backgroundRenderer;
 	private VideoMixerRenderer videoMixerRenderer;
@@ -33,14 +32,13 @@ public class MainActivity extends Activity {
 
 		setContentView(glSurfaceView);
 
-		trackerManager = TrackerManager.getInstance();
+		MaxstAR.init(getApplicationContext(), "FFZygliqyv5ZbGL31UJ1QBbe3J9SCTv3Iu+cynC3bh4=");
 		cameraDevice = CameraDevice.getInstance();
 		backgroundRenderer = BackgroundRenderer.getInstance();
 
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
 
-		trackerManager.init(this, "FFZygliqyv5ZbGL31UJ1QBbe3J9SCTv3Iu+cynC3bh4=");
 		backgroundRenderer.setScreenOrientation(getResources().getConfiguration().orientation);
 	}
 
@@ -69,7 +67,7 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-		trackerManager.deinit();
+		MaxstAR.deinit();
 	}
 
 	static {

@@ -14,7 +14,7 @@ public class VideoMixerRenderer implements Renderer {
 	private int surfaceWidth;
 	private int surfaceHeight;
 	private SampleRenderer sampleRenderer;
-
+	private VideoQuad videoQuad;
 	private Activity activity;
 
 	public VideoMixerRenderer(Activity activity) {
@@ -25,8 +25,14 @@ public class VideoMixerRenderer implements Renderer {
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		sampleRenderer = new SampleRenderer(activity);
+		sampleRenderer = new SampleRenderer();
 		sampleRenderer.onSurfaceCreated();
+
+		videoQuad = new VideoQuad();
+		videoQuad.setScale(2, 2, 1);
+		VideoPlayer videoPlayer = new VideoPlayer(activity);
+		videoQuad.setVideoPlayer(videoPlayer);
+		videoPlayer.openVideo("AsianAdult.mp4");
 	}
 
 	@Override
@@ -43,6 +49,7 @@ public class VideoMixerRenderer implements Renderer {
 		GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight);
 
 		sampleRenderer.onDrawFrame();
+		videoQuad.draw();
 	}
 
 	int mFrameCount = 0;
@@ -65,6 +72,6 @@ public class VideoMixerRenderer implements Renderer {
 	}
 
 	public void onPause() {
-		sampleRenderer.onPause();
+		videoQuad.destroyVideoPlayer();
 	}
 }
